@@ -39,13 +39,14 @@ func addTodo(w http.ResponseWriter, r *http.Request) {
 	todos = append(todos, todo)
 
 	fmt.Println("Endpoint Hit: Add Todo Endpoint")
-	w.Header().Set("Content-Type", "application/json")
+	/* w.Header().Set("Content-Type", "application/json") */
 	json.NewEncoder(w).Encode((todos))
 }
 
 func deleteTodo(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
+	enableCors(&w)
 
+	params := mux.Vars(r)
 
 	for index, item := range todos {
 		if strconv.Itoa(item.Id) == params["id"] {
@@ -55,7 +56,7 @@ func deleteTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Endpoint Hit: Delete Todo Endpoint")
-	w.Header().Set("Content-Type", "application/json")
+	/* w.Header().Set("Content-Type", "application/json") */
 	json.NewEncoder(w).Encode((todos))
 }
 
@@ -74,13 +75,15 @@ func handleRequests() {
 
 	router.HandleFunc("/", homePage)
 	router.HandleFunc("/api/todos", getTodos).Methods("GET")
-	router.HandleFunc("/api/todos", addTodo).Methods("POST")
-	router.HandleFunc("/api/todos/{id}", deleteTodo).Methods("DELETE")
+	router.HandleFunc("/api/todos", addTodo).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/todos/{id}", deleteTodo).Methods("DELETE", "OPTIONS")
 	log.Fatal(http.ListenAndServe(":8081", router))
 }
 
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	(*w).Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
 }
 
 func main() {
