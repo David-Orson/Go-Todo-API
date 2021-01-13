@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -23,7 +24,7 @@ type Todos []Todo
 func getTodos(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	fmt.Println("Endpoint Hit: All Todos Endpoint")
+	fmt.Println("Endpoint Hit: Get Todos Endpoint")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode((todos))
 }
@@ -37,6 +38,23 @@ func addTodo(w http.ResponseWriter, r *http.Request) {
 	todo.Id = rand.Intn(10000000)
 	todos = append(todos, todo)
 
+	fmt.Println("Endpoint Hit: Add Todo Endpoint")
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode((todos))
+}
+
+func deleteTodo(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+
+	for index, item := range todos {
+		if strconv.Itoa(item.Id) == params["id"] {
+			todos = append(todos[:index], todos[index+1:]...)
+			break
+		}
+	}
+
+	fmt.Println("Endpoint Hit: Delete Todo Endpoint")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode((todos))
 }
@@ -57,7 +75,7 @@ func handleRequests() {
 	router.HandleFunc("/", homePage)
 	router.HandleFunc("/api/todos", getTodos).Methods("GET")
 	router.HandleFunc("/api/todos", addTodo).Methods("POST")
-	/* router.HandleFunc("/api/todo", deleteTodo).Methods("DELETE") */
+	router.HandleFunc("/api/todos/{id}", deleteTodo).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":8081", router))
 }
 
