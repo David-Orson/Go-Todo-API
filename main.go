@@ -4,29 +4,40 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 type Todo struct {
-	Id int `json:"id"`
-	Body string `json:"body"`
-	Completed bool `json:"completed"` 
+	Id 					int 			`json:"id"`
+	Body 				string 		`json:"body"`
+	Completed 	bool 			`json:"completed"` 
 }
+
+var todos []Todo
 
 type Todos []Todo
 
-func allTodos(w http.ResponseWriter, r *http.Request) {
-	todos := Todos{
-		Todo{Id:1, Body:"Take out the trash", Completed:false },
-		Todo{Id: 2, Body: "Clean the dishes",	Completed: false },
-		Todo{Id: 3,	Body: "Walk the dog", Completed: false },
-	}
-
+func getTodos(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
 	fmt.Println("Endpoint Hit: All Todos Endpoint")
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode((todos))
+}
+
+func addTodo(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	var todo Todo
+	_ = json.NewDecoder(r.Body).Decode(&todo)
+
+	todo.Id = rand.Intn(10000000)
+	todos = append(todos, todo)
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode((todos))
 }
 
@@ -38,8 +49,15 @@ func handleRequests() {
 
 	router := mux.NewRouter()
 
+	todos = append(todos, Todo{Id:1, Body:"Take out the trash", Completed:false })
+	todos = append(todos, Todo{Id: 2, Body: "Clean the dishes",	Completed: false })
+	todos = append(todos, Todo{Id: 3,	Body: "Walk the dog", Completed: false })
+	
+
 	router.HandleFunc("/", homePage)
-	router.HandleFunc("/api/todos", allTodos).Methods("GET")
+	router.HandleFunc("/api/todos", getTodos).Methods("GET")
+	router.HandleFunc("/api/todos", addTodo).Methods("POST")
+	/* router.HandleFunc("/api/todo", deleteTodo).Methods("DELETE") */
 	log.Fatal(http.ListenAndServe(":8081", router))
 }
 
