@@ -1,7 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
 
-func main ()  {
-	fmt.Println("Hello World")
+func homePage(w http.ResponseWriter, r *http.Request)  {
+	fmt.Fprint(w, "Homepage Endpoint Hit")
+}
+
+func handleRequests() {
+	http.HandleFunc("/", homePage)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func main() {
+	handleRequests()
 }
