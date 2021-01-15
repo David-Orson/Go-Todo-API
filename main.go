@@ -14,6 +14,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var db *sql.DB
+
 type Todo struct {
 	Id 					int 			`json:"id"`
 	Body 				string 		`json:"body"`
@@ -24,12 +26,46 @@ var todos []Todo
 
 type Todos []Todo
 
+func init() {
+	var err error
+	db, err := sql.Open("postgres", "postgres://david:OrsonDC@localhost/todos?sslmode=disable")
+
+	if err != nil {
+		panic(err)
+	}
+	
+	err = db.Ping()
+	if err != nil {
+		fmt.Println("y")
+		panic(err)
+	}
+	fmt.Println("connected to database.")
+
+	rows, err := db.Query("SELECT * FROM todos;")
+	if err != nil {
+		fmt.Println("x")
+		panic(err)
+	}
+	// close to free the connection to the pool for other use.
+	defer rows.Close()
+}
+	
+
 func getTodos(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
+	/* rows, err := db.Query("SELECT * FROM todos;")
+  if err != nil {
+		log.Println(err)
+	}
+	defer rows.Close() */
+
+
+
+
 	fmt.Println("Endpoint Hit: Get Todos Endpoint")
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode((todos))
+	/* json.NewEncoder(w).Encode((todos)) */
 }
 
 func addTodo(w http.ResponseWriter, r *http.Request) {
@@ -75,9 +111,9 @@ func handleRequests() {
 
 	router := mux.NewRouter()
 
-	todos = append(todos, Todo{Id: 1, Body:"Take out the trash", Completed:false })
+	/* todos = append(todos, Todo{Id: 1, Body:"Take out the trash", Completed:false })
 	todos = append(todos, Todo{Id: 2, Body: "Clean the dishes",	Completed: false })
-	todos = append(todos, Todo{Id: 3,	Body: "Walk the dog", Completed: false })
+	todos = append(todos, Todo{Id: 3,	Body: "Walk the dog", Completed: false }) */
 	
 
 	router.HandleFunc("/", homePage)
@@ -95,27 +131,11 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
 }
 
+
+
+	
+
 func main() {
-	db, err := sql.Open("postgres", "postgres://david:OrsonDC@localhost/todos?sslmode=disable")
-
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("connected to database.")
-
-	rows, err := db.Query("SELECT * FROM todos;")
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
 	handleRequests()
 }
 

@@ -1,14 +1,14 @@
 create database todos;
 
 create table todos(
-  todo_id serial Primary key,
-  description varchar(255),
+  Id serial Primary key,
+  Body varchar(255),
   completed boolean
 );
 
-insert into todos (todo_id,description,completed) values (1, 'work', false);
+insert into todos (Id,Body,completed) values (1, 'work', false);
 
-insert into todos (description,completed) values ('workout', false);
+insert into todos (Body,completed) values ('workout', false);
 
 select * from todos;
 
