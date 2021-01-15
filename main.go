@@ -8,7 +8,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"database/sql"
+
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 )
 
 type Todo struct {
@@ -72,7 +75,7 @@ func handleRequests() {
 
 	router := mux.NewRouter()
 
-	todos = append(todos, Todo{Id:1, Body:"Take out the trash", Completed:false })
+	todos = append(todos, Todo{Id: 1, Body:"Take out the trash", Completed:false })
 	todos = append(todos, Todo{Id: 2, Body: "Clean the dishes",	Completed: false })
 	todos = append(todos, Todo{Id: 3,	Body: "Walk the dog", Completed: false })
 	
@@ -93,5 +96,27 @@ func enableCors(w *http.ResponseWriter) {
 }
 
 func main() {
+	db, err := sql.Open("postgres", "postgres://david:OrsonDC@localhost/todos?sslmode=disable")
+
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("connected to database.")
+
+	rows, err := db.Query("SELECT * FROM todos;")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
 	handleRequests()
 }
+
+// postgresql://postgres:OrsonDC@localhost:5432/todos
