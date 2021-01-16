@@ -74,7 +74,7 @@ func getTodos(w http.ResponseWriter, r *http.Request) {
 	}
 	
 
-	fmt.Println("Endpoint Hit: Get Todos Endpoint")
+	fmt.Println("Fetched Todos")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode((todos))
 }
@@ -93,7 +93,7 @@ func addTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Fetched Todos")
+	fmt.Println("Endpoint Hit: Add Todo Endpoint")
 	w.Header().Set("Content-Type", "application/json")
 	getTodos(w, r)
 }
