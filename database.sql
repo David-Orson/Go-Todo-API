@@ -12,6 +12,8 @@ insert into todos (Body,completed) values ('workout', false);
 
 select * from todos;
 
+delete from todos where id=1;
+
 create user david with password 'OrsonDC';
 
 grant all privileges on database todos to david;

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"database/sql"
 
@@ -88,13 +87,13 @@ func addTodo(w http.ResponseWriter, r *http.Request) {
 
 	/* todo.Id = rand.Intn(10000000) */ // postgres generates serial key
 	
-	_, err := db.Exec("INSERT INTO todos (Body, completed) VALUES ($1, $2)", todo.Body, todo.Completed)
+	_, err := db.Exec("INSERT INTO todos (Body, completed) VALUES ($1, $2);", todo.Body, todo.Completed)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Println("Endpoint Hit: Add Todo Endpoint")
+	fmt.Println("Fetched Todos")
 	w.Header().Set("Content-Type", "application/json")
 	getTodos(w, r)
 }
@@ -104,16 +103,22 @@ func deleteTodo(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 
-	for index, item := range todos {
+	/* for index, item := range todos {
 		if strconv.Itoa(item.Id) == params["id"] {
 			todos = append(todos[:index], todos[index+1:]...)
 			break
 		}
+	} */
+
+	_, err := db.Exec("DELETE FROM todos WHERE id=$1;", params["id"])
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
 	}
 
 	fmt.Println("Endpoint Hit: Delete Todo Endpoint")
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode((todos))
+	getTodos(w, r)
 }
 
 func handleOptions(w http.ResponseWriter, r *http.Request) {
