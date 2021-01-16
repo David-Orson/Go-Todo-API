@@ -28,7 +28,7 @@ type Todos []Todo
 
 func init() {
 	var err error
-	db, err := sql.Open("postgres", "postgres://david:OrsonDC@localhost/todos?sslmode=disable")
+	db, err = sql.Open("postgres", "postgres://david:OrsonDC@localhost/todos?sslmode=disable")
 
 	if err != nil {
 		panic(err)
@@ -54,18 +54,31 @@ func init() {
 func getTodos(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	/* rows, err := db.Query("SELECT * FROM todos;")
+	rows, err := db.Query("SELECT * FROM todos;")
   if err != nil {
 		log.Println(err)
 	}
-	defer rows.Close() */
+	defer rows.Close()
 
+	todos := make([]Todo, 0)
+	for rows.Next() {
+		todo := Todo{}
+		err := rows.Scan(&todo.Id, &todo.Body, &todo.Completed)
+		if err != nil {
+			http.Error(w, http.StatusText(500), 500)
+			return
+		}
+		todos = append(todos, todo)
+	}
 
-
+	if err = rows.Err(); err !=nil {
+		http.Error(w, http.StatusText(500), 500)
+	}
+	
 
 	fmt.Println("Endpoint Hit: Get Todos Endpoint")
 	w.Header().Set("Content-Type", "application/json")
-	/* json.NewEncoder(w).Encode((todos)) */
+	json.NewEncoder(w).Encode((todos))
 }
 
 func addTodo(w http.ResponseWriter, r *http.Request) {
