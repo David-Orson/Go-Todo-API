@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"strconv"
 
@@ -87,12 +86,17 @@ func addTodo(w http.ResponseWriter, r *http.Request) {
 	var todo Todo
 	_ = json.NewDecoder(r.Body).Decode(&todo)
 
-	todo.Id = rand.Intn(10000000)
-	todos = append(todos, todo)
+	/* todo.Id = rand.Intn(10000000) */ // postgres generates serial key
+	
+	_, err := db.Exec("INSERT INTO todos (Body, completed) VALUES ($1, $2)", todo.Body, todo.Completed)
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
 
 	fmt.Println("Endpoint Hit: Add Todo Endpoint")
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode((todos))
+	getTodos(w, r)
 }
 
 func deleteTodo(w http.ResponseWriter, r *http.Request) {
